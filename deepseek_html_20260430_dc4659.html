@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音标注质控 · 傻瓜式跟做教程（带完成效果）</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: auto; }
+
+        /* 大标题 */
+        .main-title {
+            background: #0f172a;
+            color: white;
+            padding: 24px 28px;
+            border-radius: 16px;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .main-title small { font-size: 16px; font-weight: 400; display: block; margin-top: 6px; }
+
+        /* 板块卡片 */
+        .module {
+            background: white;
+            border-radius: 18px;
+            margin-bottom: 32px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        }
+        .module-head {
+            padding: 18px 24px;
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+        }
+        .blue-module .module-head { background: #1e40af; }
+        .green-module .module-head { background: #15803d; }
+        .module-body { padding: 20px 24px; }
+
+        /* 任务标题 */
+        .task-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 28px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .blue-module .task-title { color: #1e40af; }
+        .green-module .task-title { color: #15803d; }
+
+        /* 步骤容器 */
+        .step-group {
+            counter-reset: step;
+            margin: 16px 0;
+        }
+        .step-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            counter-increment: step;
+        }
+        .step-num {
+            width: 36px;
+            height: 36px;
+            background: #1e40af;
+            color: white;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .green-module .step-num { background: #15803d; }
+        .step-text {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px 18px;
+            flex: 1;
+            border: 1px solid #e2e8f0;
+        }
+        .step-text p { margin: 6px 0; }
+        .step-text code {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        /* 预览表格 */
+        .preview-box {
+            background: #f9fafb;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 8px 0 16px;
+        }
+        .preview-box .preview-label {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #475569;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .preview-table {
+            overflow-x: auto;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+        .preview-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 600px;
+        }
+        .preview-table th {
+            background: #f1f5f9;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .preview-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            background: white;
+        }
+        .preview-table .merged {
+            background: #f8fafc;
+            font-weight: 700;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .preview-table .hl { background: #fef9c3; font-weight: 700; }
+        .preview-table .err { background: #fee2e2; font-weight: 700; }
+        .preview-table .ok { background: #dcfce7; font-weight: 700; }
+
+        .tip-note {
+            background: #fef9c3;
+            border-left: 5px solid #eab308;
+            padding: 10px 16px;
+            font-size: 14px;
+            margin: 12px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .tip-note.blue { background: #eff6ff; border-left-color: #3b82f6; }
+
+        @media (max-width: 700px) {
+            .step-item { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="main-title">
+        🎙️ 普通话语音标注 · 质控操作傻瓜教程
+        <small>打开 WPS 表格 / EdrawMax，一步一步跟着做，每一步都有完成效果图</small>
+    </div>
+
+    <!-- ==================== 板块一：质量控制设计 ==================== -->
+    <div class="module blue-module">
+        <div class="module-head">📐 板块一：质量控制设计 （对应文档02）</div>
+        <div class="module-body">
+
+            <!-- 任务1 -->
+            <div class="task-title">📊 任务1 — 制作《质检点定义表》（WPS表格）</div>
+
+            <div class="step-group">
+                <!-- 步骤1 -->
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-text">
+                        <p><strong>新建 WPS 表格，输入表头</strong></p>
+                        <p>依次点击单元格并输入：<br>
+                        <code>A1</code> → 输入 <b>项目类型</b><br>
+                        <code>B1</code> → 输入 <b>质检点</b><br>
+                        <code>C1</code> → 输入 <b>特征及判断</b></p>
+                        <p>选中 A1:C1，按 <code>Ctrl+B</code> 加粗，点击工具栏「居中」。</p>
+                        <div class="preview-box">
+                            <div class="preview-label">📸 此时你的表格：</div>
+                            <div class="preview-table">
+                                <table>
+                                    <tr><th>项目类型</th><th>质检点</th><th>特征及判断</th></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2 -->
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-text">
+                        <p><strong>填写有效性错误（17条）</strong></p>
+                        <p><code>A2</code> 输入 <b>有效性错误</b>，然后选中 <code>A2:A18</code> → 右键「设置单元格格式」→「对齐」→ 勾选「合并单元格」。</p>
+                        <p>在 <code>B2</code> 到 <code>B18</code> 依次输入：<br>
+                        空旷音、回音 / 电流音 / 噪音过大 / 语音失真 / 喷麦严重 / 截幅、消波 / 音量过低 / 忽高忽低 / 直流偏移 / 半频、经音 / 部分缺能量 / 丢帧、跳帧 / 非母语、方言不符、口音错误 / 乱念、无法单独成句 / 中间停顿超过1秒 / 一人多录 / 读错、无法转写</p>
+                        <p>在 <code>C2</code> 输入 <b>无效判为有效</b>，然后向下拖动填充柄（单元格右下角小方块）一直拖到 <code>C18</code>。</p>
+                        <div class="preview-box">
+                            <div class="preview-label">📸 此时你的表格（前几行）：</div>
+                            <div class="preview-table">
+                                <table>
+                                    <tr><th>项目类型</th><th>质检点</th><th>特征及判断</th></tr>
+                                    <tr><td rowspan="4" class="merged">有效性错误</td><td>空旷音、回音</td><td>无效判为有效</td></tr>
+                                    <tr><td>电流音</td><td>无效判为有效</td></tr>
+                                    <tr><td>噪音过大</td><td>无效判为有效</td></tr>
+                                    <tr><td>……</td><td>……</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3 -->
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-text">
+                        <p><strong>填写截取错误（2条）</strong></p>
+                        <p><code>A19</code> 输入 <b>截取错误</b>，选中 <code>A19:A20</code> 合并。</p>
+                        <p><code>B19</code> 输入 <b>静音段截取过长</b>，<code>C19</code> 输入 <b>超过0.8秒算错误</b></p>
+                        <p><code>B20</code> 输入 <b>静音段截取过短</b>，<code>C20</code> 输入 <b>低于0.2秒算错误</b></p>
+                        <div class="preview-box">
+                            <div class="preview-label">📸 此时你的表格（截取部分）：</div>
+                            <div class="preview-table">
+                                <table>
+                                    <tr><th>项目类型</th><th>质检点</th><th>特征及判断</th></tr>
+                                    <tr><td rowspan="2" class="merged">截取错误</td><td>静音段截取过长</td><td>超过0.8秒算错误</td></tr>
+                                    <tr><td>静音段截取过短</td><td>低于0.2秒算错误</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4 -->
+                <div class="step-item">
+                    <div class="step-num">4</div>
+                    <div class="step-text">
+                        <p><strong>填写转写错误（6条）</strong></p>
+                        <p><code>A21</code> 输入 <b>转写错误</b>，选中 <code>A21:A26</code> 合并。</p>
+                        <p>依次填写：<br>
+                        B21: <b>多字、少字</b> → C21: <b>所听即所写</b><br>
+                        B22: <b>错字、别字</b> → C22: <b>避免同音字错误</b><br>
+                        B23: <b>数字转写错误</b> → C23: <b>数字写汉字，不写阿拉伯数字</b><br>
+                        B24: <b>语气词加口字旁</b> → C24: <b>通用规则</b><br>
+                        B25: <b>英语/拼写/缩略词</b> → C25: <b>单词间留空格，字母大写</b><br>
+                        B26: <b>符号缺失或多余</b> → C26: <b>成对符号完整</b></p>
+                        <div class="preview-box">
+                            <div class="preview-label">📸 此时你的表格（转写部分）：</div>
+                            <div class="preview-table">
+                                <table>
+                                    <tr><th>项目类型</th><th>质检点</th><th>特征及判断</th></tr>
+                                    <tr><td rowspan="6" class="merged">转写错误</td><td>多字、少字</td><td>所听即所写</td></tr>
+                                    <tr><td>错字、别字</td><td>避免同音字错误</td></tr>
+                                    <tr><td>数字转写错误</td><td>数字写汉字，不写阿拉伯数字</td></tr>
+                                    <tr><td>语气词加口字旁</td><td>通用规则</td></tr>
+                                    <tr><td>英语/拼写/缩略词</td><td>单词间留空格，字母大写</td></tr>
+                                    <tr><td>符号缺失或多余</td><td>成对符号完整</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤5 -->
+                <div class="step-item">
+                    <div class="step-num">5</div>
+                    <div class="step-text">
+                        <p><strong>美化并保存</strong></p>
+                        <p>选中整个表格区域（A1:C26），点击工具栏「边框」→「所有框线」。<br>
+                        调整列宽：鼠标放在 A/B/C 列之间双击自动适应。<br>
+                        保存为 <b>质检点定义表.xlsx</b>。</p>
+                        <div class="tip-note blue">
+                            ✅ 现在你的表格就是标准的质检点速查表，一共25条规则。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 任务2：流程图 -->
+            <div class="task-title">🔄 任务2 — 绘制质检流程图（EdrawMax）</div>
+            <div class="step-group">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-text">
+                        <p>启动 EdrawMax → 点击「新建」→ 选择「流程图」→ 选择「基本流程图」。</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-text">
+                        <p>从左侧「符号库」中记住：<br>
+                        <b>矩形</b> = 普通步骤<br>
+                        <b>菱形</b> = 判断分支<br>
+                        <b>圆角矩形</b> = 开始/结束</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-text">
+                        <p><strong>画第一阶段：标准制定</strong></p>
+                        <p>依次拖入：<br>
+                        圆角矩形（开始） → 矩形（解读客户规范） → 矩形（参考历史经验） → 矩形（编写质检点） → 菱形（客户确认？）。<br>
+                        用箭头连接。不通过→箭头指回修改环节；通过→箭头向下。</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">4</div>
+                    <div class="step-text">
+                        <p><strong>画第二阶段：人员培训</strong></p>
+                        <p>矩形（培训质检员） → 菱形（考核通过？）<br>
+                        不通过→箭头指向二次培训（加一个矩形），再指回菱形；通过→箭头向下。</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">5</div>
+                    <div class="step-text">
+                        <p><strong>画第三阶段：执行质检</strong></p>
+                        <p>矩形（分配质检任务） → 矩形（按规范质检） → 菱形（数据合格？）<br>
+                        不合格→箭头指向矩形（返工），再指回质检；合格→矩形（提交验收） → 圆角矩形（结束）。</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">6</div>
+                    <div class="step-text">
+                        <p>双击每个形状输入文字，调整位置对齐。<br>
+                        点击「文件」→「导出」→ 保存为 PNG 图片。</p>
+                        <div class="tip-note blue">💡 流程图完成后应包含三个明显阶段，有“是/否”分支和回流箭头。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 板块二：数据验收实践 ==================== -->
+    <div class="module green-module">
+        <div class="module-head">📋 板块二：数据验收实践 （对应文档03）</div>
+        <div class="module-body">
+
+            <!-- 任务1：明细表 -->
+            <div class="task-title">📊 任务1 — 制作《质检明细表》</div>
+            <div class="step-group">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-text">
+                        <p><strong>新建表格并输入表头</strong></p>
+                        <p>在第一行依次输入：<br>
+                        <code>A1:任务</code> <code>B1:标注句数</code> <code>C1:质检句数</code> <code>D1:错误句数</code> <code>E1:截取错误</code> <code>F1:噪声错误</code> <code>G1:转写错误</code> <code>H1:有效性错误</code> <code>I1:其他</code> <code>J1:噪声合格率</code> <code>K1:除噪声合格率</code> <code>L1:正确标注</code></p>
+                        <p>选中第一行加粗居中。</p>
+                        <div class="preview-box">
+                            <div class="preview-label">📸 表头效果：</div>
+                            <div class="preview-table">
+                                <table>
+                                    <tr><th>任务</th><th>标注句数</th><th>质检句数</th><th>错误句数</th><th>截取错误</th><th>噪声错误</th><th>转写错误</th><th>有效性错误</th><th>其他</th><th>噪声合格率</th><th>除噪声合格率</th><th>正确标注</th></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-text">
+                        <p><strong>填写任务1数据（第二行）</strong></p>
+                        <p><code>A2</code> → <b>任务1</b><br>
+                        <code>B2</code> → <b>100</b> <code>C2</code> → <b>100</b> <code>D2</code> → <b>5</b> <code>E2</code> → <b>0</b> <code>F2</code> → <b>0</b> <code>G2</code> → <b>5</b> <code>H2</code> → <b>0</b> <code>I2</code> → <b>0</b> <code>J2</code> → <b>100%</b> <code>K2</code> → <b>100%</b> <code>L2</code> → <b>95</b></p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-text">
+                        <p><strong>填写任务2数据（第三行）</strong></p>
+                        <p><code>A3</code> → <b>任务2</b><br>
+                        <code>B3</code> → <b>100</b> <code>C3</code> → <b>100</b> <code>D3</code> → <b>10</b> <code>E3</code> → <b>0</b> <code>F3</code> → <b>0</b> <code>G3</code> → <b>0</b> <code>H3</code> → <b>5</b> <code>I3</code> → <b>5</b> <code>J3</code> → <b>100%</b> <code>K3</code> → <b>100%</b> <code>L3</code> → <b>90</b></p>
+                        <div class="preview-box">
+                            <div class="preview-label">📸 完成后的完整表格：</div>
+                            <div class="preview-table">
+                                <table>
+                                    <tr><th>任务</th><th>标注句数</th><th>质检句数</th><th>错误句数</th><th>截取错误</th><th>噪声错误</th><th>转写错误</th><th>有效性错误</th><th>其他</th><th>噪声合格率</th><th>除噪声合格率</th><th>正确标注</th></tr>
+                                    <tr><td><b>任务1</b></td><td>100</td><td>100</td><td>5</td><td>0</td><td>0</td><td class="hl">5</td><td>0</td><td>0</td><td>100%</td><td>100%</td><td>95</td></tr>
+                                    <tr><td><b>任务2</b></td><td>100</td><td>100</td><td>10</td><td>0</td><td>0</td><td>0</td><td class="err">5</td><td>5</td><td>100%</td><td>100%</td><td>90</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">4</div>
+                    <div class="step-text">
+                        <p>全表加边框，保存为 <b>质检明细表.xlsx</b>。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 任务2：报告单 -->
+            <div class="task-title">📄 任务2 — 制作《质检报告单》</div>
+            <div class="step-group">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-text">
+                        <p><strong>标题与表体</strong></p>
+                        <p><code>A1</code> 输入 <b>质检报告单</b>，选中 A1:B1 合并居中，字号14加粗。</p>
+                        <p>从第3行开始，A列写项目名，B列写内容。按照下表逐行填入：</p>
+                        <div class="preview-box">
+                            <div class="preview-label">📸 完整报告单（这就是你的目标样式）：</div>
+                            <div class="preview-table">
+                                <table>
+                                    <tr><th style="width:40%;">A列</th><th>B列</th></tr>
+                                    <tr><td>项目名称</td><td>普通话对话标注</td></tr>
+                                    <tr><td>负责人</td><td>负责人A</td></tr>
+                                    <tr><td>有效数据量</td><td>16.643h</td></tr>
+                                    <tr><td>无效数据量</td><td>3.357h</td></tr>
+                                    <tr><td>数据单位</td><td>条</td></tr>
+                                    <tr><td>要求合格率</td><td>95%</td></tr>
+                                    <tr><td>内检抽检率</td><td>32%</td></tr>
+                                    <tr><td>内检合格率</td><td class="hl">98%</td></tr>
+                                    <tr><td>验收总数量</td><td>200</td></tr>
+                                    <tr><td>验收抽检率</td><td class="hl">1.1%</td></tr>
+                                    <tr><td>验收不合格数量</td><td>5</td></tr>
+                                    <tr><td>验收合格率</td><td>97.5%</td></tr>
+                                    <tr><td>验收人员</td><td>验收员B</td></tr>
+                                    <tr><td>验收过程</td><td>转写错误5条</td></tr>
+                                    <tr><td>验收结论</td><td class="ok">✅ 第一次验收合格</td></tr>
+                                    <tr><td>验收时间</td><td>2022-03-31</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        <p>选中 A3:B18 添加所有框线，A列加粗，保存为 <b>质检报告单.xlsx</b>。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 任务3：总结报告 -->
+            <div class="task-title">📝 任务3 — 制作《项目质量总结报告》</div>
+            <div class="step-group">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-text">
+                        <p><strong>标题和基本信息</strong></p>
+                        <p><code>A1</code> 输入 <b>项目质量总结报告</b>，合并居中加粗。</p>
+                        <p>第2行（可合并多列）：<br><code>项目名称：普通话对话语音标注 | 项目编号：20220301-558-11-01 | 项目经理：沈经理 | 质量工程师：赵工程师</code></p>
+                        <p>第3行：<code>要求合格率：95% | 抽样比例：100% | 质检方式：人工质检</code></p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-text">
+                        <p><strong>分四个章节填写正文</strong></p>
+                        <p>从第5行开始，每个标题占一行（如 A5 输入 <b>一、项目需求</b>），下一行合并多列填写内容（内容需设置自动换行）。</p>
+                        <div class="preview-box">
+                            <div class="preview-label">📸 四个章节的内容（直接复制使用）：</div>
+                            <div class="preview-table">
+                                <table>
+                                    <tr><th>章节</th><th>内容</th></tr>
+                                    <tr><td><b>一、项目需求</b></td><td>质检抽检30%，验收抽检1%-10%，按句子计合格率，硬性合格率90%。质量标准涉及文本、符号、属性、截取错误。发音人属性：性别、角色、语气、语言。转写原则：所听即所写。</td></tr>
+                                    <tr><td><b>二、初期问题</b></td><td>1.选择区间不准确 2.标错语音属性 3.字不对音 4.漏标语气词 5.噪声静音漏标</td></tr>
+                                    <tr><td><b>三、解决方案</b></td><td>1.语气不明标“常规” 2.对话不完整视为无效 3.明确各项属性标注规范</td></tr>
+                                    <tr><td><b>四、总结</b></td><td class="hl">前期因截取问题多次返工，后期质量稳定。下次培训重点强化截取规范和属性标注。</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        <p>保存为 <b>项目质量总结报告.xlsx</b>。</p>
+                        <div class="tip-note">💡 长文本单元格：右键 → 设置单元格格式 → 对齐 → 勾选「自动换行」。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
